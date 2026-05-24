@@ -1,0 +1,17 @@
+target/
+
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+
+.DS_Store
+Thumbs.db
+*.log
+*.swp
+
+application.yaml
+.env
+
+HELP.md

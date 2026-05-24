@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Assistant | AI-Powered Queries</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/tokyo-night-dark.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        (function() {
+            const theme = localStorage.getItem('theme');
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark-mode');
+                document.documentElement.setAttribute('data-bs-theme', 'dark');
+            }
+        })();
+    </script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --secondary: #64748b;
+            --background: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --radius-xl: 24px;
+            --radius-lg: 16px;
+            --glass: rgba(255, 255, 255, 0.7);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        :root.dark-mode {
+            --background: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --glass: rgba(30, 41, 59, 0.7);
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text-main);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            transition: var(--transition);
+            min-height: 100vh;
+        }
+
+        /* Hero Styling */
+        .hero-section {
+            padding: 5rem 0 3rem;
+            text-align: center;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto;
+            letter-spacing: 0.05em;
+            line-height: 1.6;
+        }
+
+        /* Glass Container */
+        .main-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 1.5rem 5rem;
+        }
+
+        /* Search Bar Area */
+        .search-container {
+            position: relative;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 0.75rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            transition: var(--transition);
+            margin-bottom: 2rem;
+        }
+
+        .search-container:focus-within {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .search-input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            padding: 1rem 1.5rem;
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: var(--text-main);
+            outline: none;
+        }
+
+        .submit-btn {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 100px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: var(--transition);
+        }
+
+        .submit-btn:hover {
+            background: var(--primary-hover);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Chips */
+        .chips-container {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 3rem;
+        }
+
+        .chip {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 0.5rem 1rem;
+            border-radius: 100px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text-muted);
+        }
+
+        .chip:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        /* IDE Style SQL Window */
+        .ide-window {
+            background: #1e1e2e;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            margin-bottom: 3rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .ide-header {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.75rem 1.25rem;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .ide-dots {
+            display: flex;
+            gap: 8px;
+            position: absolute;
+            left: 1.25rem;
+        }
+
+        .ide-title {
+            flex-grow: 1;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .ide-content {
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        .copy-trigger {
+            position: absolute;
+            top: 1rem;
+            right: 1.25rem;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #94a3b8;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            z-index: 20;
+        }
+
+        .copy-trigger:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        /* Results Table */
+        .results-section {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .table-responsive {
+            margin: 0;
+        }
+
+        .table {
+            margin-bottom: 0;
+            color: var(--text-main);
+        }
+
+        .table th {
+            background: var(--background);
+            color: var(--text-muted);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table td {
+            padding: 1rem 1.5rem;
+            vertical-align: middle;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Schema Toggle */
+        .schema-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            padding: 0.5rem 1rem;
+            border-radius: 100px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 1rem;
+            transition: var(--transition);
+        }
+
+        .schema-badge:hover {
+            background: var(--card-bg);
+            transform: scale(1.02);
+        }
+
+        .schema-badge.active [data-lucide="chevron-down"] {
+            transform: rotate(180deg);
+        }
+
+        .schema-drawer {
+            display: none;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .schema-drawer.show {
+            display: block;
+        }
+
+        .column-badge {
+            background: var(--background);
+            border: 1px solid var(--border);
+            padding: 0.25rem 0.75rem;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: var(--primary);
+            transition: var(--transition);
+        }
+
+        .column-badge:hover {
+            border-color: var(--primary);
+            background: var(--card-bg);
+        }
+
+        .badge-price {
+            color: #10b981;
+        }
+
+        .letter-spacing-1 {
+            letter-spacing: 0.05em;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Loading Animation */
+        .loader-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        :root.dark-mode .loader-overlay {
+            background: rgba(15, 23, 42, 0.8);
+        }
+
+        .pulse-loader {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: var(--primary);
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.8); opacity: 0.5; }
+        }
+
+        /* Dark Mode Toggle */
+        .floating-controls {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            z-index: 1000;
+        }
+
+        .circle-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .circle-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* Error Message */
+        .error-toast {
+            background: #fef2f2;
+            border: 1px solid #fee2e2;
+            color: #ef4444;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* Sidebar History */
+        .history-sidebar {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border-left: 1px solid var(--border);
+            z-index: 2000;
+            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 2rem;
+        }
+
+        .history-sidebar.active {
+            right: 0;
+        }
+
+        .history-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 1.25rem;
+            border-radius: var(--radius-lg);
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .history-item:hover {
+            border-color: var(--primary);
+            transform: translateX(-5px);
+        }
+
+        .history-q {
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .history-sql {
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Success Indicator */
+        .result-count {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="loader-overlay" id="loader">
+    <div class="pulse-loader"></div>
+    <p class="mt-4 fw-bold">Generating SQL Insights...</p>
+</div>
+
+<header class="hero-section">
+    <div class="container">
+        <h1 class="hero-title">SQL Assistant AI</h1>
+        <p class="hero-subtitle">Transform your natural language questions into powerful, production-ready MySQL queries instantly.</p>
+    </div>
+</header>
+
+<main class="main-container">
+    <div class="text-center">
+        <div class="schema-badge" id="schemaToggle">
+            <i data-lucide="database"></i>
+            <span>Inspect Database Schema</span>
+            <i data-lucide="chevron-down"></i>
+        </div>
+    </div>
+
+    <div class="schema-drawer" id="schemaDrawer">
+        <div class="d-flex align-items-center gap-3 mb-4">
+            <div class="p-2 bg-primary bg-opacity-10 text-primary rounded-3">
+                <i data-lucide="table"></i>
+            </div>
+            <div>
+                <h5 class="mb-0 fw-bold">ai_services</h5>
+                <div class="text-muted small">Main table for AI models and pricing</div>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="text-muted small fw-bold text-uppercase mb-3 letter-spacing-1">Basic Information</div>
+                <div class="d-flex flex-wrap gap-2">
+                    <span class="column-badge">id</span>
+                    <span class="column-badge">name</span>
+                    <span class="column-badge">provider</span>
+                    <span class="column-badge">model</span>
+                    <span class="column-badge">type</span>
+                    <span class="column-badge">available</span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="text-muted small fw-bold text-uppercase mb-3 letter-spacing-1">Pricing & Specs</div>
+                <div class="d-flex flex-wrap gap-2">
+                    <span class="column-badge badge-price">input_price_per_1k_tokens</span>
+                    <span class="column-badge badge-price">output_price_per_1k_tokens</span>
+                    <span class="column-badge">max_tokens</span>
+                    <span class="column-badge">launched_at</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form th:action="@{/}" method="post" id="queryForm">
+        <div class="search-container">
+            <input type="text" class="search-input" id="question" name="question"
+                   th:value="${question}" required autocomplete="off"
+                   placeholder="e.g. Find all models with price < 0.01">
+            <button type="submit" class="submit-btn">
+                <span>Analyze</span>
+                <i data-lucide="sparkles" size="18"></i>
+            </button>
+        </div>
+
+        <div class="chips-container" th:if="${stats}">
+            <div class="chip" th:text="'Explore all ' + ${stats.totalModels} + ' models'">Show all available models</div>
+            <div class="chip" th:text="${stats.recentModelsCount} + ' Models launched after 2023'">Models launched after 2023</div>
+            <div class="chip" th:text="'Top 3 Cheapest (incl. ' + ${stats.cheapestModels[0]} + ')'">Top 3 cheapest models</div>
+            <div class="chip" th:text="'Group by ' + ${stats.topProviders.size()} + '+ providers'">Group models by provider</div>
+        </div>
+    </form>
+
+    <div class="error-toast" th:if="${error}">
+        <i data-lucide="alert-circle"></i>
+        <div th:text="${error}"></div>
+    </div>
+
+    <!-- Generated SQL Preview -->
+    <div th:if="${sql}" class="ide-window">
+        <div class="ide-header">
+            <div class="ide-dots">
+                <div class="dot dot-red"></div>
+                <div class="dot dot-yellow"></div>
+                <div class="dot dot-green"></div>
+            </div>
+            <div class="ide-title">Generated MySQL Query</div>
+            <div class="d-flex gap-2">
+                <i data-lucide="code" size="14" class="text-muted"></i>
+            </div>
+        </div>
+        <div class="ide-content">
+            <button class="copy-trigger" onclick="copyToClipboard()"><i data-lucide="copy" size="16"></i></button>
+            <pre><code class="language-sql" id="sqlOutput" th:text="${sql}"></code></pre>
+        </div>
+    </div>
+
+    <!-- Query Results -->
+    <div th:if="${headers != null}" class="results-container">
+        <div class="d-flex justify-content-between align-items-end mb-3">
+            <div class="result-count">
+                <i data-lucide="check-circle-2" class="text-success" size="16"></i>
+                <span th:text="${rows.size()} + ' records found'"></span>
+                <span class="opacity-50">|</span>
+                <span th:text="'Executed in ' + ${executionTime} + 'ms'"></span>
+            </div>
+        </div>
+        <div class="results-section">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th th:each="header : ${headers}" th:text="${header}"></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="row : ${rows}">
+                        <td th:each="cell : ${row}" th:text="${cell}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div class="floating-controls">
+    <button class="circle-btn" id="historyBtn" title="Query History">
+        <i data-lucide="history"></i>
+    </button>
+    <button class="circle-btn" id="themeToggle" title="Toggle Theme">
+        <i data-lucide="moon"></i>
+    </button>
+</div>
+
+<div class="history-sidebar" id="sidebar">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0 fw-bold">History</h4>
+        <button class="btn btn-link p-0 text-muted" id="closeSidebar">
+            <i data-lucide="x"></i>
+        </button>
+    </div>
+    <div id="historyList"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/sql.min.js"></script>
+<script>
+    // Initialize everything when DOM is ready
+    document.addEventListener('DOMContentLoaded', () => {
+        const themeToggle = document.getElementById('themeToggle');
+        const root = document.documentElement;
+
+        // Initialize theme state correctly before creating icons
+        if (root.classList.contains('dark-mode')) {
+            const icon = themeToggle.querySelector('i');
+            if (icon) icon.setAttribute('data-lucide', 'sun');
+        }
+
+        // Create initial icons
+        lucide.createIcons();
+
+        // Highlighting
+        const code = document.getElementById('sqlOutput');
+        if (code) hljs.highlightElement(code);
+
+        // Chips Handling
+        document.querySelectorAll('.chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                const questionInput = document.getElementById('question');
+                questionInput.value = chip.textContent.trim();
+                document.getElementById('queryForm').dispatchEvent(new Event('submit'));
+                document.getElementById('queryForm').submit();
+            });
+        });
+
+        // Theme Toggle
+        themeToggle.addEventListener('click', () => {
+            const isDark = root.classList.toggle('dark-mode');
+            const icon = themeToggle.querySelector('i, svg');
+            
+            if (isDark) {
+                root.setAttribute('data-bs-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+                if (icon) icon.setAttribute('data-lucide', 'sun');
+            } else {
+                root.removeAttribute('data-bs-theme');
+                localStorage.setItem('theme', 'light');
+                if (icon) icon.setAttribute('data-lucide', 'moon');
+            }
+            lucide.createIcons();
+        });
+
+        // Schema Toggle
+        const schemaBtn = document.getElementById('schemaToggle');
+        const schemaDrawer = document.getElementById('schemaDrawer');
+
+        if (schemaBtn && schemaDrawer) {
+            schemaBtn.addEventListener('click', () => {
+                schemaDrawer.classList.toggle('show');
+                schemaBtn.classList.toggle('active');
+            });
+        }
+
+        // Sidebar
+        const historyBtn = document.getElementById('historyBtn');
+        const sidebar = document.getElementById('sidebar');
+        const closeSidebar = document.getElementById('closeSidebar');
+
+        if (historyBtn && sidebar && closeSidebar) {
+            historyBtn.addEventListener('click', () => sidebar.classList.add('active'));
+            closeSidebar.addEventListener('click', () => sidebar.classList.remove('active'));
+        }
+
+        // Loading State
+        const queryForm = document.getElementById('queryForm');
+        if (queryForm) {
+            queryForm.addEventListener('submit', function() {
+                document.getElementById('loader').style.display = 'flex';
+                const question = document.getElementById('question').value;
+                saveToHistory(question);
+            });
+        }
+
+        renderHistory();
+    });
+
+    // Copy functionality
+    function copyToClipboard() {
+        const text = document.getElementById('sqlOutput').textContent;
+        navigator.clipboard.writeText(text).then(() => {
+            const btn = document.querySelector('.copy-trigger');
+            btn.innerHTML = '<i data-lucide="check" size="16"></i>';
+            lucide.createIcons();
+            setTimeout(() => {
+                btn.innerHTML = '<i data-lucide="copy" size="16"></i>';
+                lucide.createIcons();
+            }, 2000);
+        });
+    }
+
+    // History logic
+    function saveToHistory(q) {
+        let history = JSON.parse(localStorage.getItem('sql_history') || '[]');
+        history.unshift({ q, time: new Date().toLocaleString() });
+        if (history.length > 10) history.pop();
+        localStorage.setItem('sql_history', JSON.stringify(history));
+        renderHistory();
+    }
+
+    function renderHistory() {
+        const list = document.getElementById('historyList');
+        const history = JSON.parse(localStorage.getItem('sql_history') || '[]');
+        list.innerHTML = history.length ? '' : '<p class="text-muted text-center mt-5">No recent queries</p>';
+
+        history.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            div.innerHTML = `
+                <div class="history-q">${item.q}</div>
+                <div class="small opacity-50">${item.time}</div>
+            `;
+            div.onclick = () => {
+                document.getElementById('question').value = item.q;
+                sidebar.classList.remove('active');
+            };
+            list.appendChild(div);
+        });
+    }
+</script>
+</body>
+</html>
