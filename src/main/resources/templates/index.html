@@ -546,7 +546,8 @@
         <div class="chips-container" th:if="${stats}">
             <div class="chip" th:text="'Explore all ' + ${stats.totalModels} + ' models'">Show all available models</div>
             <div class="chip" th:text="${stats.recentModelsCount} + ' Models launched after 2023'">Models launched after 2023</div>
-            <div class="chip" th:text="'Top 3 Cheapest (incl. ' + ${stats.cheapestModels[0]} + ')'">Top 3 cheapest models</div>
+            <div class="chip" th:if="${not #lists.isEmpty(stats.cheapestModels)}" 
+                 th:text="'Top 3 Cheapest (incl. ' + ${stats.cheapestModels[0]} + ')'">Top 3 cheapest models</div>
             <div class="chip" th:text="'Group by ' + ${stats.topProviders.size()} + '+ providers'">Group models by provider</div>
         </div>
     </form>

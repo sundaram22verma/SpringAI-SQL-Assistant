@@ -33,7 +33,7 @@ VALUES
 ('Mistral Small', 'Mistral AI', 'mistral-small', 'chat', 0.0020, 0.0060, true, 32000, '32k', true, '2024-02-26', 'Cost-effective Mistral model for general text tasks'),
 ('Claude 3 Sonnet', 'Anthropic', 'claude-3-sonnet', 'chat', 0.0030, 0.0090, true, 200000, '200k', true, '2024-03-01', 'Balanced Claude model offering strong reasoning at moderate cost'),
 ('Cohere Command R+', 'Cohere', 'command-r-plus', 'chat', 0.0050, 0.0150, true, 128000, '128k', true, '2024-05-20', 'Advanced reasoning model with superior long-context information retrieval'),
-('Anthropic Claude Code', 'Anthropic', 'claude-code', 'code', 0.0050, 0.0150, true, 200000, '200k', true, '2024-09-10', 'Specialized Claude model for software development tasks with improved code reasoning')
+('Anthropic Claude Code', 'Anthropic', 'claude-code', 'code', 0.0050, 0.0150, true, 200000, '200k', true, '2024-09-10', 'Specialized Claude model for software development tasks with improved code reasoning'),
 ('DeepSeek Chat', 'DeepSeek', 'deepseek-chat', 'chat', 0.0010, 0.0020, true, 128000, '128k', true, '2024-01-10', 'Efficient multilingual reasoning model'),
 ('DeepSeek Coder', 'DeepSeek', 'deepseek-coder', 'code', 0.0020, 0.0040, true, 128000, '128k', true, '2024-01-15', 'Code-focused model with strong developer assistance'),
 ('Gemma 7B', 'Google', 'gemma-7b', 'text-gen', 0.0000, 0.0000, false, 8192, '8k', true, '2024-02-21', 'Open lightweight language model from Google'),
@@ -84,7 +84,7 @@ VALUES
 ('Perplexity Sonar', 'Perplexity', 'sonar', 'search', 0.0020, 0.0060, true, 128000, '128k', true, '2024-05-21', 'Search-augmented conversational model'),
 ('Perplexity Sonar Pro', 'Perplexity', 'sonar-pro', 'search', 0.0040, 0.0120, true, 256000, '256k', true, '2024-07-11', 'Advanced research-oriented AI search model'),
 ('Devstral', 'Mistral AI', 'devstral', 'code', 0.0030, 0.0090, true, 128000, '128k', true, '2024-10-01', 'Software engineering optimized coding assistant'),
-('OpenCoder XL', 'OpenCoder', 'opencoder-xl', 'code', 0.0015, 0.0045, true, 64000, '64k', true, '2024-08-08', 'Developer-centric code generation model')
+('OpenCoder XL', 'OpenCoder', 'opencoder-xl', 'code', 0.0015, 0.0045, true, 64000, '64k', true, '2024-08-08', 'Developer-centric code generation model'),
 ('OpenELM 7B', 'Apple', 'openelm-7b', 'text-gen', 0.0000, 0.0000, false, 32768, '32k', true, '2024-04-24', 'Apple open-source efficient language model'),
 ('OpenELM Chat', 'Apple', 'openelm-chat', 'chat', 0.0010, 0.0030, true, 65536, '64k', true, '2024-05-01', 'Conversational variant of OpenELM'),
 ('Firefly AI', 'Adobe', 'firefly-ai', 'multimodal', 0.0060, 0.0180, true, 128000, '128k', true, '2024-03-20', 'Creative multimodal generation model'),
