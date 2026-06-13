@@ -1,6 +1,8 @@
 package madhav.SpringAI.service.impl;
 
 import madhav.SpringAI.exception.SqlGenerationException;
+import madhav.SpringAI.model.DatabaseType;
+import madhav.SpringAI.model.SchemaInfo;
 import madhav.SpringAI.service.TextToSqlService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,18 +13,6 @@ import org.springframework.stereotype.Service;
 public class TextToSqlServiceImpl implements TextToSqlService {
 
     private static final Logger logger = LoggerFactory.getLogger(TextToSqlServiceImpl.class);
-
-    /**
-     * Immutable database schema definition used in prompt.
-     */
-    private static final String DATABASE_SCHEMA = """
-            Tables:
-            - ai_services (id: int, name: string, provider: string, model: string, type: string,
-              input_price_per_1k_tokens: decimal, output_price_per_1k_tokens: decimal,
-              supports_sql: boolean, max_tokens: int, context_window: string,
-              available: boolean, launched_at: date, description: text)
-            """;
-
     private final ChatClient chatClient;
 
     public TextToSqlServiceImpl(ChatClient chatClient) {
@@ -30,26 +20,33 @@ public class TextToSqlServiceImpl implements TextToSqlService {
     }
 
     @Override
-    public String generateSql(String question) {
-        logger.info("Generating SQL for question: {}", question);
+    public String generateSql(String question, SchemaInfo schema, DatabaseType databaseType) {
+        logger.info("Generating {} SQL for question: {}", databaseType.getDisplayName(), question);
 
         String prompt = """
-                You are a MySQL expert. Convert the natural language question into a MySQL query.
+                You are a %s expert. Convert the natural language question into a %s query.
 
-                DATABASE SCHEMA:
                 %s
 
                 RULES:
                 1. Use only the tables and columns from the provided schema.
-                2. Return only the MySQL query, without explanations.
+                2. Return only the %s query, without explanations.
                 3. Use SELECT queries only for safety.
                 4. Use clear and meaningful column names in the output.
-                5. Use MySQL-specific syntax if needed.
+                5. Use %s-specific syntax if needed.
 
                 QUESTION: %s
 
-                MySQL Query:
-                """.formatted(DATABASE_SCHEMA, question);
+                %s Query:
+                """.formatted(
+                        databaseType.getDisplayName(), 
+                        databaseType.getDisplayName(), 
+                        schema.toString(),
+                        databaseType.getDisplayName(),
+                        databaseType.getDisplayName(),
+                        question,
+                        databaseType.getDisplayName()
+                );
 
         try {
             var response = chatClient.prompt(prompt).call();

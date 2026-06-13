@@ -1,7 +1,10 @@
 package madhav.SpringAI;
 
 import madhav.SpringAI.exception.SqlGenerationException;
+import madhav.SpringAI.model.DatabaseType;
+import madhav.SpringAI.model.SchemaInfo;
 import madhav.SpringAI.service.impl.TextToSqlServiceImpl;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Answers;
@@ -24,6 +27,21 @@ class TextToSqlServiceImplTest {
     @InjectMocks
     private TextToSqlServiceImpl textToSqlService;
 
+    private SchemaInfo schemaInfo;
+    private DatabaseType databaseType;
+
+    @BeforeEach
+    void setUp() {
+        schemaInfo = new SchemaInfo();
+        SchemaInfo.TableInfo table = new SchemaInfo.TableInfo("ai_services");
+        table.addColumn(new SchemaInfo.ColumnInfo("id", "int"));
+        table.addColumn(new SchemaInfo.ColumnInfo("name", "string"));
+        table.addColumn(new SchemaInfo.ColumnInfo("provider", "string"));
+        table.addColumn(new SchemaInfo.ColumnInfo("available", "boolean"));
+        schemaInfo.addTable(table);
+        databaseType = DatabaseType.MYSQL;
+    }
+
     @Test
     void shouldReturnCorrectSqlQuery() {
         String question = "Show all available AI services";
@@ -31,7 +49,7 @@ class TextToSqlServiceImplTest {
 
         when(chatClient.prompt(anyString()).call().content()).thenReturn(expectedSql);
 
-        String result = textToSqlService.generateSql(question);
+        String result = textToSqlService.generateSql(question, schemaInfo, databaseType);
 
         assertEquals(expectedSql, result);
         verify(chatClient).prompt(contains("QUESTION: Show all available AI services"));
@@ -44,7 +62,7 @@ class TextToSqlServiceImplTest {
 
         when(chatClient.prompt(anyString()).call().content()).thenReturn(expectedSql);
 
-        String result = textToSqlService.generateSql(question);
+        String result = textToSqlService.generateSql(question, schemaInfo, databaseType);
 
         assertEquals(expectedSql, result);
         verify(chatClient).prompt(contains("DATABASE SCHEMA"));
@@ -61,12 +79,10 @@ class TextToSqlServiceImplTest {
 
         SqlGenerationException ex = assertThrows(
                 SqlGenerationException.class,
-                () -> textToSqlService.generateSql(question)
+                () -> textToSqlService.generateSql(question, schemaInfo, databaseType)
         );
 
         assertTrue(ex.getMessage().contains("Failed to generate SQL"));
-
-        // <-- вот сюда
         verify(chatClient, atLeastOnce()).prompt(anyString());
     }
 
@@ -78,7 +94,7 @@ class TextToSqlServiceImplTest {
 
         when(chatClient.prompt(anyString()).call().content()).thenReturn(expectedSql);
 
-        String result = textToSqlService.generateSql(question);
+        String result = textToSqlService.generateSql(question, schemaInfo, databaseType);
 
         assertEquals(expectedSql, result);
         verify(chatClient).prompt(contains("Use clear and meaningful column names"));
@@ -92,7 +108,7 @@ class TextToSqlServiceImplTest {
 
         when(chatClient.prompt(anyString()).call().content()).thenReturn(rawSql);
 
-        String result = textToSqlService.generateSql(question);
+        String result = textToSqlService.generateSql(question, schemaInfo, databaseType);
 
         assertEquals(expectedSql, result);
     }

@@ -15,10 +15,10 @@ import java.util.Map;
 public class SqlExecutorServiceImpl implements SqlExecutorService {
 
     private static final Logger logger = LoggerFactory.getLogger(SqlExecutorServiceImpl.class);
-    private final JdbcTemplate jdbcTemplate;
+    private final madhav.SpringAI.service.DataSourceManager dataSourceManager;
 
-    public SqlExecutorServiceImpl(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    public SqlExecutorServiceImpl(madhav.SpringAI.service.DataSourceManager dataSourceManager) {
+        this.dataSourceManager = dataSourceManager;
     }
 
     @Override
@@ -32,7 +32,7 @@ public class SqlExecutorServiceImpl implements SqlExecutorService {
         }
 
         try {
-            List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+            List<Map<String, Object>> rows = dataSourceManager.getJdbcTemplate().queryForList(sql);
             logger.debug("Query returned {} rows", rows.size());
 
             if (rows.isEmpty()) {

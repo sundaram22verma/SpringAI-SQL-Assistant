@@ -18,10 +18,16 @@ public class SqlQueryServiceImpl implements SqlQueryService {
     private static final Logger logger = LoggerFactory.getLogger(SqlQueryServiceImpl.class);
     private final TextToSqlService textToSqlService;
     private final SqlExecutorService sqlExecutorService;
+    private final madhav.SpringAI.service.SchemaDiscoveryService schemaDiscoveryService;
+    private final madhav.SpringAI.service.DataSourceManager dataSourceManager;
 
-    public SqlQueryServiceImpl(TextToSqlService textToSqlService, SqlExecutorService sqlExecutorService) {
+    public SqlQueryServiceImpl(TextToSqlService textToSqlService, SqlExecutorService sqlExecutorService, 
+                               madhav.SpringAI.service.SchemaDiscoveryService schemaDiscoveryService,
+                               madhav.SpringAI.service.DataSourceManager dataSourceManager) {
         this.textToSqlService = textToSqlService;
         this.sqlExecutorService = sqlExecutorService;
+        this.schemaDiscoveryService = schemaDiscoveryService;
+        this.dataSourceManager = dataSourceManager;
     }
 
     @Override
@@ -33,7 +39,14 @@ public class SqlQueryServiceImpl implements SqlQueryService {
         }
 
         long startTime = System.currentTimeMillis();
-        String sql = textToSqlService.generateSql(question);
+        
+        // Dynamic schema discovery
+        madhav.SpringAI.model.SchemaInfo schema = schemaDiscoveryService.getSchema();
+        madhav.SpringAI.model.DatabaseType dbType = dataSourceManager.getCurrentConnection() != null ? 
+                dataSourceManager.getCurrentConnection().getDatabaseType() : 
+                madhav.SpringAI.model.DatabaseType.MYSQL; // Default if not explicitly connected
+
+        String sql = textToSqlService.generateSql(question, schema, dbType);
         List<List<String>> result = sqlExecutorService.execute(sql);
         long executionTime = System.currentTimeMillis() - startTime;
         logger.info("Query processed in {} ms", executionTime);

@@ -485,12 +485,17 @@
 <header class="hero-section">
     <div class="container">
         <h1 class="hero-title">SQL Assistant AI</h1>
-        <p class="hero-subtitle">Transform your natural language questions into powerful, production-ready MySQL queries instantly.</p>
+        <p class="hero-subtitle">Transform your natural language questions into powerful, production-ready SQL queries for any database instantly.</p>
     </div>
 </header>
 
 <main class="main-container">
-    <div class="text-center">
+    <div class="d-flex justify-content-center gap-3 mb-4">
+        <div class="schema-badge" id="dbConfigToggle">
+            <i data-lucide="settings"></i>
+            <span>Database Connection</span>
+            <i data-lucide="chevron-down"></i>
+        </div>
         <div class="schema-badge" id="schemaToggle">
             <i data-lucide="database"></i>
             <span>Inspect Database Schema</span>
@@ -498,38 +503,81 @@
         </div>
     </div>
 
-    <div class="schema-drawer" id="schemaDrawer">
+    <!-- Connection Config Drawer -->
+    <div class="schema-drawer" id="dbConfigDrawer">
         <div class="d-flex align-items-center gap-3 mb-4">
             <div class="p-2 bg-primary bg-opacity-10 text-primary rounded-3">
-                <i data-lucide="table"></i>
+                <i data-lucide="plug"></i>
             </div>
             <div>
-                <h5 class="mb-0 fw-bold">ai_services</h5>
-                <div class="text-muted small">Main table for AI models and pricing</div>
+                <h5 class="mb-0 fw-bold">Connection Settings</h5>
+                <div class="text-muted small">Switch between MySQL, PostgreSQL, SQL Server, etc.</div>
             </div>
         </div>
-        <div class="row g-4">
-            <div class="col-md-6">
-                <div class="text-muted small fw-bold text-uppercase mb-3 letter-spacing-1">Basic Information</div>
-                <div class="d-flex flex-wrap gap-2">
-                    <span class="column-badge">id</span>
-                    <span class="column-badge">name</span>
-                    <span class="column-badge">provider</span>
-                    <span class="column-badge">model</span>
-                    <span class="column-badge">type</span>
-                    <span class="column-badge">available</span>
-                </div>
+
+        <form th:action="@{/database/connect}" method="post" class="row g-3">
+            <div class="col-md-12">
+                <label class="form-label small fw-bold">JDBC URL</label>
+                <input type="text" name="url" class="form-control" placeholder="jdbc:mysql://localhost:3306/db" th:value="${currentConnection != null ? currentConnection.url : ''}" required>
             </div>
             <div class="col-md-6">
-                <div class="text-muted small fw-bold text-uppercase mb-3 letter-spacing-1">Pricing & Specs</div>
-                <div class="d-flex flex-wrap gap-2">
-                    <span class="column-badge badge-price">input_price_per_1k_tokens</span>
-                    <span class="column-badge badge-price">output_price_per_1k_tokens</span>
-                    <span class="column-badge">max_tokens</span>
-                    <span class="column-badge">launched_at</span>
+                <label class="form-label small fw-bold">Username</label>
+                <input type="text" name="username" class="form-control" placeholder="root" th:value="${currentConnection != null ? currentConnection.username : ''}">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small fw-bold">Password</label>
+                <input type="password" name="password" class="form-control" placeholder="••••••••" th:value="${currentConnection != null ? currentConnection.password : ''}">
+            </div>
+            <div class="col-md-12">
+                <label class="form-label small fw-bold">Driver Class Name</label>
+                <input type="text" name="driver" class="form-control" placeholder="com.mysql.cj.jdbc.Driver" th:value="${currentConnection != null ? currentConnection.driverClassName : 'com.mysql.cj.jdbc.Driver'}">
+            </div>
+            <div class="col-12 mt-4">
+                <button type="submit" class="btn btn-primary w-100 fw-bold py-2">Connect to Database</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Schema Drawer -->
+    <div class="schema-drawer" id="schemaDrawer">
+        <div th:if="${schema == null || schema.tables == null || schema.tables.isEmpty()}" class="text-center py-4">
+            <i data-lucide="database-zap" size="48" class="text-muted opacity-20 mb-3"></i>
+            <p class="text-muted">No tables discovered. Connect to a database first.</p>
+        </div>
+
+        <div th:each="table : ${schema?.tables}" class="mb-5 last-child-mb-0">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="p-2 bg-primary bg-opacity-10 text-primary rounded-3">
+                    <i data-lucide="table"></i>
                 </div>
+                <div>
+                    <h5 class="mb-0 fw-bold">
+                        <span class="opacity-50" th:text="${table.database != null ? table.database + '.' : ''}">db.</span>
+                        <span th:text="${table.name}">table_name</span>
+                    </h5>
+                    <div class="text-muted small" th:text="${table.columns.size()} + ' columns discovered'">0 columns</div>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <span th:each="col : ${table.columns}" class="column-badge">
+                    <span th:text="${col.name}">col</span>
+                    <span class="opacity-40 ms-1" style="font-size: 0.7rem;" th:text="${col.type}">TYPE</span>
+                </span>
             </div>
         </div>
+    </div>
+
+    <div th:if="${message}" class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+        <i data-lucide="check-circle" class="me-2"></i>
+        <span th:text="${message}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="text-center mb-3" th:if="${currentConnection}">
+        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-20 px-3 py-2 rounded-pill">
+            <i data-lucide="link-2" size="14" class="me-1"></i>
+            Connected to: <span class="fw-bold" th:text="${currentConnection.databaseType.displayName}">MySQL</span>
+        </span>
     </div>
 
     <form th:action="@{/}" method="post" id="queryForm">
@@ -546,9 +594,14 @@
         <div class="chips-container" th:if="${stats}">
             <div class="chip" th:text="'Explore all ' + ${stats.totalModels} + ' models'">Show all available models</div>
             <div class="chip" th:text="${stats.recentModelsCount} + ' Models launched after 2023'">Models launched after 2023</div>
-            <div class="chip" th:if="${not #lists.isEmpty(stats.cheapestModels)}" 
+            <div class="chip" th:if="${not #lists.isEmpty(stats.cheapestModels)}"
                  th:text="'Top 3 Cheapest (incl. ' + ${stats.cheapestModels[0]} + ')'">Top 3 cheapest models</div>
             <div class="chip" th:text="'Group by ' + ${stats.topProviders.size()} + '+ providers'">Group models by provider</div>
+        <div class="chips-container" th:if="${stats != null}">
+            <div class="chip" th:if="${stats.totalModels > 0}" th:text="'Explore all ' + ${stats.totalModels} + ' models'">Show all available models</div>
+            <div class="chip" th:if="${stats.recentModelsCount > 0}" th:text="${stats.recentModelsCount} + ' Models launched after 2023'">Models launched after 2023</div>
+            <div class="chip" th:if="${!stats.topCheapestMessage.isEmpty()}" th:text="${stats.topCheapestMessage}">Top 3 cheapest models</div>
+            <div class="chip" th:if="${!stats.topProvidersMessage.isEmpty()}" th:text="${stats.topProvidersMessage}">Group by 3+ providers</div>
         </div>
     </form>
 
@@ -565,7 +618,7 @@
                 <div class="dot dot-yellow"></div>
                 <div class="dot dot-green"></div>
             </div>
-            <div class="ide-title">Generated MySQL Query</div>
+            <div class="ide-title" th:text="${currentConnection != null ? 'Generated ' + currentConnection.databaseType.displayName + ' Query' : 'Generated SQL Query'}">Generated MySQL Query</div>
             <div class="d-flex gap-2">
                 <i data-lucide="code" size="14" class="text-muted"></i>
             </div>
@@ -672,16 +725,20 @@
             lucide.createIcons();
         });
 
-        // Schema Toggle
-        const schemaBtn = document.getElementById('schemaToggle');
-        const schemaDrawer = document.getElementById('schemaDrawer');
+        // Toggles
+        const setupToggle = (btnId, drawerId) => {
+            const btn = document.getElementById(btnId);
+            const drawer = document.getElementById(drawerId);
+            if (btn && drawer) {
+                btn.addEventListener('click', () => {
+                    drawer.classList.toggle('show');
+                    btn.classList.toggle('active');
+                });
+            }
+        };
 
-        if (schemaBtn && schemaDrawer) {
-            schemaBtn.addEventListener('click', () => {
-                schemaDrawer.classList.toggle('show');
-                schemaBtn.classList.toggle('active');
-            });
-        }
+        setupToggle('dbConfigToggle', 'dbConfigDrawer');
+        setupToggle('schemaToggle', 'schemaDrawer');
 
         // Sidebar
         const historyBtn = document.getElementById('historyBtn');

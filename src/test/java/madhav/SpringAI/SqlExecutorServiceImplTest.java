@@ -1,6 +1,7 @@
 package madhav.SpringAI;
 
 import madhav.SpringAI.exception.SqlExecutionException;
+import madhav.SpringAI.service.DataSourceManager;
 import madhav.SpringAI.service.impl.SqlExecutorServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,6 +23,9 @@ class SqlExecutorServiceImplTest {
     @Mock
     private JdbcTemplate jdbcTemplate;
 
+    @Mock
+    private DataSourceManager dataSourceManager;
+
     @InjectMocks
     private SqlExecutorServiceImpl sqlExecutorService;
 
@@ -29,6 +33,8 @@ class SqlExecutorServiceImplTest {
 
     @BeforeEach
     void setUp() {
+        lenient().when(dataSourceManager.getJdbcTemplate()).thenReturn(jdbcTemplate);
+        
         mockQueryResult = new ArrayList<>();
         Map<String, Object> row1 = new LinkedHashMap<>();
         row1.put("id", 1);

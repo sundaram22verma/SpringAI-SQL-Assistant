@@ -1,7 +1,6 @@
 package madhav.SpringAI.model;
 
 import java.util.List;
-import java.util.Map;
 
 public class DashboardStats {
     private long totalModels;
@@ -20,4 +19,14 @@ public class DashboardStats {
     public long getRecentModelsCount() { return recentModelsCount; }
     public List<String> getTopProviders() { return topProviders; }
     public List<String> getCheapestModels() { return cheapestModels; }
+
+    public String getTopCheapestMessage() {
+        if (cheapestModels == null || cheapestModels.isEmpty()) return "";
+        return "Top 3 Cheapest (incl. " + cheapestModels.get(0) + ")";
+    }
+
+    public String getTopProvidersMessage() {
+        if (topProviders == null || topProviders.isEmpty()) return "";
+        return "Group by " + topProviders.size() + "+ providers";
+    }
 }
