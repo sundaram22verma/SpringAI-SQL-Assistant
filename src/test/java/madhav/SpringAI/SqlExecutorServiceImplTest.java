@@ -91,16 +91,15 @@ class SqlExecutorServiceImplTest {
     }
 
     @Test
-    void shouldThrowExceptionForUnsafeQuery() {
-        String unsafeSql = "DELETE FROM ai_services WHERE id = 1";
-        SqlExecutionException exception = assertThrows(
-                SqlExecutionException.class,
-                () -> sqlExecutorService.execute(unsafeSql)
-        );
+    void shouldExecuteUpdateQuery() {
+        String sql = "UPDATE ai_services SET available = false WHERE id = 1";
+        when(jdbcTemplate.update(sql)).thenReturn(1);
 
-        assertEquals("Unsafe SQL request detected", exception.getMessage());
-        assertEquals(unsafeSql, exception.getSql());
-        verify(jdbcTemplate, never()).queryForList(anyString());
+        List<List<String>> result = sqlExecutorService.execute(sql);
+
+        assertEquals(2, result.size());
+        assertEquals(List.of("Status"), result.get(0));
+        assertEquals(List.of("Successfully executed. Affected rows: 1"), result.get(1));
     }
 
     @Test

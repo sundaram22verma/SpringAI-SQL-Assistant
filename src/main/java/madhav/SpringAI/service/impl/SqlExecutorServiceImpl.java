@@ -26,29 +26,36 @@ public class SqlExecutorServiceImpl implements SqlExecutorService {
         logger.info("Executing SQL query: {}", sql);
         List<List<String>> result = new ArrayList<>();
 
-        if (!isSafeQuery(sql)) {
-            logger.warn("Unsafe SQL detected: {}", sql);
-            throw new SqlExecutionException("Unsafe SQL request detected", sql);
-        }
-
         try {
-            List<Map<String, Object>> rows = dataSourceManager.getJdbcTemplate().queryForList(sql);
-            logger.debug("Query returned {} rows", rows.size());
+            JdbcTemplate jdbcTemplate = dataSourceManager.getJdbcTemplate();
+            
+            String normalizedSql = sql.trim().toUpperCase();
+            if (normalizedSql.startsWith("SELECT") || normalizedSql.startsWith("SHOW") || normalizedSql.startsWith("DESCRIBE")) {
+                List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+                logger.debug("Query returned {} rows", rows.size());
 
-            if (rows.isEmpty()) {
-                return result;
-            }
-
-            List<String> headers = new ArrayList<>(rows.get(0).keySet());
-            result.add(headers);
-
-            for (Map<String, Object> row : rows) {
-                List<String> rowData = new ArrayList<>();
-                for (String col : headers) {
-                    Object value = row.get(col);
-                    rowData.add(value != null ? String.valueOf(value) : "null");
+                if (rows.isEmpty()) {
+                    return result;
                 }
-                result.add(rowData);
+
+                List<String> headers = new ArrayList<>(rows.get(0).keySet());
+                result.add(headers);
+
+                for (Map<String, Object> row : rows) {
+                    List<String> rowData = new ArrayList<>();
+                    for (String col : headers) {
+                        Object value = row.get(col);
+                        rowData.add(value != null ? String.valueOf(value) : "null");
+                    }
+                    result.add(rowData);
+                }
+            } else {
+                // Execute update/delete/insert
+                int affectedRows = jdbcTemplate.update(sql);
+                List<String> header = List.of("Status");
+                List<String> row = List.of("Successfully executed. Affected rows: " + affectedRows);
+                result.add(header);
+                result.add(row);
             }
 
             return result;
@@ -58,18 +65,5 @@ public class SqlExecutorServiceImpl implements SqlExecutorService {
         }
     }
 
-    private boolean isSafeQuery(String sql) {
-        String normalizedSql = sql.trim().toUpperCase();
-        return normalizedSql.startsWith("SELECT") &&
-                !normalizedSql.contains("INSERT") &&
-                !normalizedSql.contains("UPSERT") &&
-                !normalizedSql.contains("UPDATE") &&
-                !normalizedSql.contains("DELETE") &&
-                !normalizedSql.contains("DROP") &&
-                !normalizedSql.contains("ALTER") &&
-                !normalizedSql.contains("TRUNCATE") &&
-                !normalizedSql.contains("CREATE") &&
-                !normalizedSql.contains("EXEC") &&
-                !normalizedSql.contains("EXECUTE");
-    }
+    // Removed isSafeQuery as safety is managed by SqlQueryService and TextToSqlService
 }

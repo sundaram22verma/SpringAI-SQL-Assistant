@@ -38,7 +38,7 @@ public class SchemaInfo {
         private String name;
         private List<ColumnInfo> columns = new ArrayList<>();
 
-        public TableInfo(String database) {
+        public TableInfo(String database, String name) {
             this.database = database;
             this.name = name;
         }

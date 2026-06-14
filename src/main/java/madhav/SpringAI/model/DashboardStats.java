@@ -2,31 +2,24 @@ package madhav.SpringAI.model;
 
 import java.util.List;
 
+/**
+ * Represents dynamic statistics and suggestions for the dashboard.
+ */
 public class DashboardStats {
-    private long totalModels;
-    private long recentModelsCount;
-    private List<String> topProviders;
-    private List<String> cheapestModels;
+    private long totalTables;
+    private long totalColumns;
+    private List<String> suggestions;
+    private String connectionStatus;
 
-    public DashboardStats(long totalModels, long recentModelsCount, List<String> topProviders, List<String> cheapestModels) {
-        this.totalModels = totalModels;
-        this.recentModelsCount = recentModelsCount;
-        this.topProviders = topProviders;
-        this.cheapestModels = cheapestModels;
+    public DashboardStats(long totalTables, long totalColumns, List<String> suggestions, String connectionStatus) {
+        this.totalTables = totalTables;
+        this.totalColumns = totalColumns;
+        this.suggestions = suggestions;
+        this.connectionStatus = connectionStatus;
     }
 
-    public long getTotalModels() { return totalModels; }
-    public long getRecentModelsCount() { return recentModelsCount; }
-    public List<String> getTopProviders() { return topProviders; }
-    public List<String> getCheapestModels() { return cheapestModels; }
-
-    public String getTopCheapestMessage() {
-        if (cheapestModels == null || cheapestModels.isEmpty()) return "";
-        return "Top 3 Cheapest (incl. " + cheapestModels.get(0) + ")";
-    }
-
-    public String getTopProvidersMessage() {
-        if (topProviders == null || topProviders.isEmpty()) return "";
-        return "Group by " + topProviders.size() + "+ providers";
-    }
+    public long getTotalTables() { return totalTables; }
+    public long getTotalColumns() { return totalColumns; }
+    public List<String> getSuggestions() { return suggestions; }
+    public String getConnectionStatus() { return connectionStatus; }
 }

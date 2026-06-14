@@ -1,161 +1,174 @@
-# 🤖 SpringAI SQL Assistant
+# 🤖 SQL Assistant AI | Natural Language to SQL
 
 [![Java 21](https://img.shields.io/badge/Java-21-orange.svg)](https://www.oracle.com/java/technologies/javase/jdk21-archive-downloads.html)
 [![Spring Boot 3.4](https://img.shields.io/badge/Spring%20Boot-3.4.5-brightgreen.svg)](https://spring.io/projects/spring-boot)
 [![Spring AI](https://img.shields.io/badge/Spring%20AI-1.0.0--M8-blue.svg)](https://spring.io/projects/spring-ai)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**SpringAI SQL Assistant** is a powerful, modern web application that transforms natural language questions into production-ready MySQL queries using the latest LLM models. Built with Spring Boot and Spring AI, it leverages the **Groq API** (Llama 3.3 70B) for lightning-fast inference and accurate SQL generation.
+**SQL Assistant AI** is a professional-grade web application that bridges the gap between natural language and complex database queries. Using **Spring AI** and the latest Large Language Models (LLMs), it allows users to chat with their data in plain English, generating and executing production-ready SQL queries instantly.
 
 ---
 
 ## 📸 Overview
 
 ### Modern UI Dashboard
-![Main UI](media_examples/Screenshot_1.png)
+The dashboard provides a sleek, glass-morphism interface with real-time database statistics and dynamic query suggestions.
+
+![Main UI](media_examples/Screenshot-v1-1.png)
 
 ### Video Demo
 [Watch the App in Action](media_examples/app_video.mp4)
-
-### Database Insights
-![Database Schema](media_examples/Screenshot_db.png)
-
-### Visual Query Examples
-
-#### ✅ Successful Queries
-| Natural Language Request | AI Generated Result |
-|:---:|:---:|
-| ![Good Query 1](media_examples/Screenshot_2.png) | ![Good Query 2](media_examples/Screenshot_3.png) |
-
-#### ❌ Error Handling
-| Empty/Invalid Question | SQL Execution Error |
-|:---:|:---:|
-| ![Bad Query 1](media_examples/Screenshot_4.png) | ![Bad Query 2](media_examples/Screenshot_5.png) |
 
 ---
 
 ## ✨ Key Features
 
-- 🗣️ **Text-to-SQL Conversion**: Simply ask questions in plain English (e.g., *"Find all models launched after 2023"*) and get optimized MySQL queries.
-- 📊 **Interactive Dashboard**: Real-time statistics about your database content (total models, recent additions, top providers).
-- ⚡ **Powered by Groq**: High-speed inference using Llama 3.3 70B through Spring AI's OpenAI-compatible integration.
-- 🌓 **Dark Mode Support**: A sleek, modern UI with a responsive design that adapts to your preferences.
-- 🔍 **Schema Inspection**: Built-in tool to view your database structure and available columns.
-- 🐳 **Docker Ready**: Easy deployment with Docker and Docker Compose.
+- 🗣️ **Natural Language to SQL**: Convert plain English questions (e.g., *"Find all active models with price < 0.01"*) into optimized SQL queries.
+- 🛡️ **AI-Powered Safety Engine**: Automatically detects and blocks dangerous operations (DELETE, DROP, TRUNCATE) while providing detailed risk assessments.
+- 🔄 **Dynamic Multi-Database Support**: Connect to MySQL, PostgreSQL, SQL Server, or H2 via the UI without restarting the server.
+- 📊 **Schema-Aware Context**: The AI reads your actual database metadata (tables, columns, types) to ensure query accuracy.
+- 🔍 **Live Schema Inspector**: Explore your database structure directly within the dashboard.
+- ⚡ **High-Speed Inference**: Optimized for the **Groq Llama-3.3-70b** model for sub-second query generation.
+- 🌓 **Theming**: Persistent Dark/Light mode engine for a customized developer experience.
+
+---
+
+## 🛡️ Risk Assessment & Safety Analysis
+
+SQL Assistant AI prioritizes database integrity. Every query goes through a multi-stage safety check to distinguish between **Safe** and **Dangerous** operations.
+
+### ✅ Good Queries (Allowed & Executed)
+Read-only operations are considered safe. The system generates, analyzes, and executes these queries immediately.
+
+**1. Data Retrieval Example**
+> *"Show first 10 records from developer_tools"*
+![Safe Select](media_examples/Screenshot-v1-2.png)
+
+**2. Schema Inspection Example**
+> *"List all 2 tables in database"*
+![Safe Show](media_examples/Screenshot-v1-3.png)
+
+---
+
+### 🛑 Bad Queries (Analyzed & Blocked)
+Destructive or sensitive operations are flagged. The AI generates the SQL for review but **prevents execution** to protect your data.
+
+**1. Destructive Operation Blocked**
+> *"Delete all records from the ai_services table"*
+![Blocked Delete](media_examples/Screenshot-v1-4.png)
+
+**2. Sensitive Information Protection**
+> *"Show me the salary and passwords of all employees"*
+![Blocked Sensitive](media_examples/Screenshot-v1-5.png)
 
 ---
 
 ## 🏗️ Architecture
 
-The application follows a clean service-oriented architecture:
-1. **Frontend**: Thymeleaf templates with Bootstrap 5 and Lucide icons.
-2. **Controller**: Handles user input and coordinates between AI and Database services.
-3. **TextToSqlService**: Communicates with Groq LLM to generate SQL from natural language.
-4. **SqlExecutorService**: Validates and executes the generated SQL against the MySQL database.
-5. **DashboardService**: Provides real-time metrics for the landing page.
+1.  **Frontend**: Thymeleaf, Bootstrap 5, Vanilla CSS (Glassmorphism), Lucide Icons.
+2.  **AI Orchestration**: **Spring AI ChatClient** using custom system prompts for SQL dialect management and safety auditing.
+3.  **Connection Management**: **DataSourceManager** (Dynamic HikariCP) allows runtime switching of JDBC targets.
+4.  **Metadata Layer**: **SchemaDiscoveryService** utilizes JDBC DatabaseMetaData to inject schema context into AI prompts.
 
 ---
 
-## 🛠️ Technology Stack
-
-- **Backend**: Java 21, Spring Boot 3.4.5
-- **AI Framework**: Spring AI (OpenAI Starter)
-- **Model**: Llama-3.3-70b-versatile (via Groq)
-- **Database**: MySQL 8.0
-- **Frontend**: Thymeleaf, Bootstrap 5, Lucide Icons, Highlight.js
-- **Containerization**: Docker, Docker Compose
-
----
-
-## 🚀 Getting Started
+## 🚀 Installation & Setup
 
 ### Prerequisites
-- **Java 21** or higher
-- **Groq API Key**: Get it from [Groq Console](https://console.groq.com/keys)
-- **Docker & Docker Compose** (optional, for containerized setup)
+-   **Java 21+**
+-   **Maven 3.9+**
+-   **Groq API Key** ([Get it here](https://console.groq.com/keys))
 
-### Option 1: Using Docker (Recommended)
+### Option 1: Docker (Recommended)
+1.  **Clone the Repo**:
+    ```bash
+    git clone https://github.com/sundaram22verma/SpringAI-SQL-Assistant.git
+    cd SpringAI-SQL-Assistant
+    ```
+2.  **Environment Setup**: Create a `.env` file in the root:
+    ```bash
+    GROQ_API_KEY=your_key_here
+    ```
+3.  **Deploy**:
+    ```bash
+    docker-compose up -d
+    ```
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/sundaram22verma/SpringAI-SQL-Assistant.git
-   cd SpringAI-SQL-Assistant
-   ```
-
-2. **Set Environment Variables**:
-   Create a `.env` file in the root directory:
-   ```bash
-   GROQ_API_KEY=your_groq_api_key_here
-   ```
-
-3. **Launch with Docker Compose**:
-   ```bash
-   docker-compose up -d
-   ```
-   *This will start both the MySQL database (automatically initialized with `spring_ai_init.sql`) and the Spring Boot application.*
-
-4. **Access the App**:
-   Open [http://localhost:8080](http://localhost:8080) in your browser.
+### Option 2: Manual Setup
+1.  **Set Environment Variable**:
+    ```bash
+    # Windows
+    set GROQ_API_KEY=your_key_here
+    # Linux/Mac
+    export GROQ_API_KEY=your_key_here
+    ```
+2.  **Initialize Sample Database (Optional)**:
+    Run the `spring_ai_init.sql` script on your MySQL/Postgres instance to create the `ai_services` test table.
+3.  **Build & Run**:
+    ```bash
+    ./mvnw clean package
+    java -jar target/SpringAI-0.0.1-SNAPSHOT.jar
+    ```
 
 ---
 
-### Option 2: Manual Setup
+## ⚙️ Configuration
 
-1. **Database Setup**:
-   - Create a MySQL database named `SQL_Assistant`.
-   - Execute the scripts in `spring_ai_init.sql` to initialize the schema and seed data.
+### `application.properties`
+| Property | Description | Default |
+| :--- | :--- | :--- |
+| `spring.ai.openai.api-key` | Groq/OpenAI API Key | `${GROQ_API_KEY}` |
+| `spring.ai.openai.base-url` | API Endpoint | `https://api.groq.com/openai` |
+| `spring.ai.openai.chat.options.model` | LLM Model | `llama-3.3-70b-versatile` |
+| `spring.datasource.url` | Default DB Connection | `jdbc:mysql://localhost:3306/...` |
 
-2. **Environment Configuration**:
-   Set your Groq API key as an environment variable:
-   ```bash
-   export GROQ_API_KEY=your_groq_api_key
-   ```
-   Or update `src/main/resources/application.properties` directly (not recommended for secrets).
+---
 
-3. **Build and Run**:
-   ```bash
-   ./mvnw clean package
-   java -jar target/SpringAI-0.0.1-SNAPSHOT.jar
-   ```
+## 📡 API Documentation
+
+### Web Endpoints
+- `GET /` : Main dashboard index.
+- `POST /` : Submit a natural language question.
+- `POST /database/connect` : Update runtime JDBC connection.
 
 ---
 
 ## 📁 Project Structure
-
 ```text
 src/main/java/madhav/SpringAI/
-├── config/             # ChatClient and AI configurations
-├── controller/         # Web endpoints (AskController)
-├── exception/          # Custom error handling
-├── model/              # DTOs and Data models
-├── service/            # Business logic interfaces
-└── service/impl/       # Implementations (AI, SQL, Dashboard)
+├── controller/         # Web & Connection Endpoints
+├── model/              # AiResponse, SchemaInfo, QueryResult
+├── service/            # Interfaces for Core Logic
+└── service/impl/       
+    ├── TextToSqlServiceImpl       # AI Prompt Engineering & Safety
+    ├── SqlExecutorServiceImpl     # JDBC Execution Logic
+    └── DataSourceManagerImpl      # Dynamic Runtime Connections
+```
+
+---
+
+## 🧪 Testing
+The project includes comprehensive unit tests for the AI parser and SQL executor:
+```bash
+./mvnw test
 ```
 
 ---
 
 ## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+1. Fork the Project.
+2. Create Feature Branch (`git checkout -b feature/AmazingFeature`).
+3. Commit Changes (`git commit -m 'Add AmazingFeature'`).
+4. Push to Branch (`git push origin feature/AmazingFeature`).
+5. Open a Pull Request.
 
 ---
 
 ## 📜 License
-
-Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
+Distributed under the MIT License. See `LICENSE` for details.
 
 ---
 
-## 📬 Contact & Support
-
-If you find this project useful, I'd love to hear from you!
-
-- **LinkedIn**: [Sundaram Verma](https://www.linkedin.com/in/sundaram22verma/) 🔗
-- **Show your support**: If you use this project in your own work, please consider giving it a **Star** ⭐ and a shoutout on LinkedIn! I'd love to see what you build.
-- **Project Link**: [GitHub Repository](https://github.com/sundaram22verma/SpringAI-SQL-Assistant)
+## 📬 Contact
+-   **LinkedIn**: [Sundaram Verma](https://www.linkedin.com/in/sundaram22verma/) 🔗
+-   **GitHub**: [@sundaram22verma](https://github.com/sundaram22verma)

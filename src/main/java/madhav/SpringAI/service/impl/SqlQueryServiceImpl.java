@@ -1,6 +1,7 @@
 package madhav.SpringAI.service.impl;
 
 import madhav.SpringAI.exception.EmptyQuestionException;
+import madhav.SpringAI.model.AiResponse;
 import madhav.SpringAI.model.QueryResult;
 import madhav.SpringAI.service.SqlExecutorService;
 import madhav.SpringAI.service.SqlQueryService;
@@ -9,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -46,20 +48,30 @@ public class SqlQueryServiceImpl implements SqlQueryService {
                 dataSourceManager.getCurrentConnection().getDatabaseType() : 
                 madhav.SpringAI.model.DatabaseType.MYSQL; // Default if not explicitly connected
 
-        String sql = textToSqlService.generateSql(question, schema, dbType);
-        List<List<String>> result = sqlExecutorService.execute(sql);
+        AiResponse aiResponse = textToSqlService.generateSql(question, schema, dbType);
+        
+        List<List<String>> result = new ArrayList<>();
+        if ("ALLOWED".equalsIgnoreCase(aiResponse.getExecutionStatus())) {
+            result = sqlExecutorService.execute(aiResponse.getSql());
+        } else {
+            logger.info("Execution BLOCKED for query type: {}", aiResponse.getQueryType());
+        }
+        
         long executionTime = System.currentTimeMillis() - startTime;
         logger.info("Query processed in {} ms", executionTime);
 
-        if (result.isEmpty()) {
-            return new QueryResult(sql, Collections.emptyList(), Collections.emptyList(), executionTime);
-        }
+        List<String> headers = result.isEmpty() ? Collections.emptyList() : result.get(0);
+        List<List<String>> rows = result.size() > 1 ? result.subList(1, result.size()) : Collections.emptyList();
 
         return new QueryResult(
-                sql,
-                result.get(0),
-                result.size() > 1 ? result.subList(1, result.size()) : Collections.emptyList(), // строки данных
-                executionTime
+                aiResponse.getSql(),
+                headers,
+                rows,
+                executionTime,
+                aiResponse.getIntentSummary(),
+                aiResponse.getQueryType(),
+                aiResponse.getRiskAssessment(),
+                aiResponse.getExecutionStatus()
         );
     }
 }

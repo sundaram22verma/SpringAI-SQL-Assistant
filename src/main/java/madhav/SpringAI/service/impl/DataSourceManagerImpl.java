@@ -45,6 +45,6 @@ public class DataSourceManagerImpl implements DataSourceManager {
 
     @Override
     public boolean isConnected() {
-        return dataSource != null;
+        return currentConnection != null;
     }
 }

@@ -46,7 +46,7 @@ public class SchemaDiscoveryServiceImpl implements SchemaDiscoveryService {
                     // Prefer catalog for MySQL, schema for others if available
                     String dbName = (tableSchema != null && !tableSchema.isEmpty()) ? tableSchema : tableCatalog;
                     
-                    SchemaInfo.TableInfo tableInfo = new SchemaInfo.TableInfo(dbName);
+                    SchemaInfo.TableInfo tableInfo = new SchemaInfo.TableInfo(dbName, tableName);
                     
                     // Get columns for each table - Scoped to this specific table's catalog and schema
                     try (ResultSet columns = metaData.getColumns(tableCatalog, tableSchema, tableName, "%")) {

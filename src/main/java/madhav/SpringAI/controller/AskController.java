@@ -1,5 +1,6 @@
 package madhav.SpringAI.controller;
 
+import madhav.SpringAI.model.DatabaseConnection;
 import madhav.SpringAI.model.QueryResult;
 import madhav.SpringAI.service.SqlQueryService;
 import org.slf4j.Logger;
@@ -32,9 +33,12 @@ public class AskController {
     @GetMapping("/")
     public String index(Model model) {
         logger.debug("Accessing index page");
-        model.addAttribute("stats", dashboardService.getStats());
-        model.addAttribute("currentConnection", dataSourceManager.getCurrentConnection());
-        model.addAttribute("schema", schemaDiscoveryService.getSchema());
+        DatabaseConnection connection = dataSourceManager.getCurrentConnection();
+        model.addAttribute("currentConnection", connection);
+        if (connection != null) {
+            model.addAttribute("stats", dashboardService.getStats());
+            model.addAttribute("schema", schemaDiscoveryService.getSchema());
+        }
         return "index";
     }
 
@@ -42,19 +46,24 @@ public class AskController {
     public String ask(@RequestParam String question, Model model) {
         logger.info("Received question: {}", question);
         model.addAttribute("question", question);
-        model.addAttribute("stats", dashboardService.getStats());
-        model.addAttribute("currentConnection", dataSourceManager.getCurrentConnection());
-        model.addAttribute("schema", schemaDiscoveryService.getSchema());
+        DatabaseConnection connection = dataSourceManager.getCurrentConnection();
+        model.addAttribute("currentConnection", connection);
+        
+        if (connection != null) {
+            model.addAttribute("stats", dashboardService.getStats());
+            model.addAttribute("schema", schemaDiscoveryService.getSchema());
+        }
         
         try {
             QueryResult result = sqlQueryService.processQuestion(question);
+            model.addAttribute("result", result);
             model.addAttribute("sql", result.getSql());
             model.addAttribute("executionTime", result.getExecutionTimeMs());
 
             if (result.hasResults()) {
                 model.addAttribute("headers", result.getHeaders());
                 model.addAttribute("rows", result.getRows());
-            } else {
+            } else if ("ALLOWED".equalsIgnoreCase(result.getExecutionStatus())) {
                 model.addAttribute("error", "There are no results for this request");
             }
         } catch (Exception e) {

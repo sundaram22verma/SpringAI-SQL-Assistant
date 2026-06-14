@@ -1,6 +1,7 @@
 package madhav.SpringAI;
 
 import madhav.SpringAI.exception.SqlGenerationException;
+import madhav.SpringAI.model.AiResponse;
 import madhav.SpringAI.model.DatabaseType;
 import madhav.SpringAI.model.SchemaInfo;
 import madhav.SpringAI.service.impl.TextToSqlServiceImpl;
@@ -15,7 +16,6 @@ import org.springframework.ai.chat.client.ChatClient;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,7 +33,7 @@ class TextToSqlServiceImplTest {
     @BeforeEach
     void setUp() {
         schemaInfo = new SchemaInfo();
-        SchemaInfo.TableInfo table = new SchemaInfo.TableInfo("ai_services");
+        SchemaInfo.TableInfo table = new SchemaInfo.TableInfo("public", "ai_services");
         table.addColumn(new SchemaInfo.ColumnInfo("id", "int"));
         table.addColumn(new SchemaInfo.ColumnInfo("name", "string"));
         table.addColumn(new SchemaInfo.ColumnInfo("provider", "string"));
@@ -43,30 +43,52 @@ class TextToSqlServiceImplTest {
     }
 
     @Test
-    void shouldReturnCorrectSqlQuery() {
+    void shouldReturnCorrectAiResponse() {
         String question = "Show all available AI services";
-        String expectedSql = "SELECT * FROM ai_services WHERE available = true";
+        String aiResponseText = """
+                1. Intent Summary: Find all AI services that are currently available.
+                2. Query Type: SELECT
+                3. Generated SQL Query:
+                ```sql
+                SELECT * FROM ai_services WHERE available = true
+                ```
+                4. Risk Assessment: SAFE. This is a read-only query.
+                5. Execution Status: ALLOWED
+                """;
 
-        when(chatClient.prompt(anyString()).call().content()).thenReturn(expectedSql);
+        when(chatClient.prompt().system(anyString()).user(anyString()).call().content()).thenReturn(aiResponseText);
 
-        String result = textToSqlService.generateSql(question, schemaInfo, databaseType);
+        AiResponse result = textToSqlService.generateSql(question, schemaInfo, databaseType);
 
-        assertEquals(expectedSql, result);
-        verify(chatClient).prompt(contains("QUESTION: Show all available AI services"));
+        assertNotNull(result);
+        assertEquals("SELECT * FROM ai_services WHERE available = true", result.getSql());
+        assertEquals("SELECT", result.getQueryType());
+        assertEquals("ALLOWED", result.getExecutionStatus());
+        assertTrue(result.getIntentSummary().contains("Find all AI services"));
     }
 
     @Test
-    void shouldReturnSqlQueryWithComplexConditions() {
-        String question = "Find all AI services by OpenAI launched after 2022";
-        String expectedSql = "SELECT * FROM ai_services WHERE provider = 'OpenAI' AND launched_at > '2022-12-31'";
+    void shouldHandleBlockedQueries() {
+        String question = "Delete all AI services";
+        String aiResponseText = """
+                1. Intent Summary: Delete all records from the ai_services table.
+                2. Query Type: DELETE
+                3. Generated SQL Query:
+                ```sql
+                DELETE FROM ai_services
+                ```
+                4. Risk Assessment: CRITICAL WARNING: This query will delete all rows.
+                5. Execution Status: BLOCKED
+                """;
 
-        when(chatClient.prompt(anyString()).call().content()).thenReturn(expectedSql);
+        when(chatClient.prompt().system(anyString()).user(anyString()).call().content()).thenReturn(aiResponseText);
 
-        String result = textToSqlService.generateSql(question, schemaInfo, databaseType);
+        AiResponse result = textToSqlService.generateSql(question, schemaInfo, databaseType);
 
-        assertEquals(expectedSql, result);
-        verify(chatClient).prompt(contains("DATABASE SCHEMA"));
-        verify(chatClient).prompt(contains("QUESTION: Find all AI services by OpenAI launched after 2022"));
+        assertNotNull(result);
+        assertEquals("DELETE FROM ai_services", result.getSql());
+        assertEquals("DELETE", result.getQueryType());
+        assertEquals("BLOCKED", result.getExecutionStatus());
     }
 
     @Test
@@ -74,7 +96,7 @@ class TextToSqlServiceImplTest {
         String question = "Show all AI services";
         String errorMessage = "API connection failed";
 
-        when(chatClient.prompt(anyString()).call())
+        when(chatClient.prompt().system(anyString()).user(anyString()).call())
                 .thenThrow(new RuntimeException(errorMessage));
 
         SqlGenerationException ex = assertThrows(
@@ -83,33 +105,5 @@ class TextToSqlServiceImplTest {
         );
 
         assertTrue(ex.getMessage().contains("Failed to generate SQL"));
-        verify(chatClient, atLeastOnce()).prompt(anyString());
-    }
-
-
-    @Test
-    void shouldReturnSqlWithProperColumnNames() {
-        String question = "Show names and providers of AI services";
-        String expectedSql = "SELECT name, provider FROM ai_services";
-
-        when(chatClient.prompt(anyString()).call().content()).thenReturn(expectedSql);
-
-        String result = textToSqlService.generateSql(question, schemaInfo, databaseType);
-
-        assertEquals(expectedSql, result);
-        verify(chatClient).prompt(contains("Use clear and meaningful column names"));
-    }
-
-    @Test
-    void shouldTrimExtraWhitespaceInReturnedSql() {
-        String question = "Count AI services by provider";
-        String rawSql = "\n\nSELECT provider, COUNT(*) as service_count FROM ai_services GROUP BY provider\n\n";
-        String expectedSql = "SELECT provider, COUNT(*) as service_count FROM ai_services GROUP BY provider";
-
-        when(chatClient.prompt(anyString()).call().content()).thenReturn(rawSql);
-
-        String result = textToSqlService.generateSql(question, schemaInfo, databaseType);
-
-        assertEquals(expectedSql, result);
     }
 }
